@@ -9,7 +9,7 @@ import { removeDoc, useDocs } from "@/lib/doc-store";
 import { useUpload } from "@/lib/use-upload";
 import { cn } from "@/lib/utils";
 
-function DocList({ onNavigate }: { onNavigate?: () => void }) {
+function DocList({ onNavigate }: { onNavigate?: (() => void) | undefined }) {
   const docs = useDocs();
   const params = useParams({ strict: false }) as { docId?: string };
 
@@ -73,7 +73,7 @@ function DocList({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
-function SidebarInner({ onNavigate }: { onNavigate?: () => void }) {
+function SidebarInner({ onNavigate }: { onNavigate?: (() => void) | undefined }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const { upload, busy } = useUpload();
 

@@ -16,7 +16,7 @@ export function Analyzing({ label }: { label: string }) {
   );
 }
 
-export function DocError({ message }: { message?: string }) {
+export function DocError({ message }: { message?: string | undefined }) {
   return (
     <div className="flex flex-col items-center rounded-xl border border-destructive/30 bg-destructive/5 px-6 py-14 text-center">
       <TriangleAlert className="size-6 text-destructive" />

@@ -31,7 +31,7 @@ async function extractPdf(file: File) {
       .replace(/\s+/g, " ");
     pages.push(line);
   }
-  await pdf.destroy();
+
   return pages.join("\n\n");
 }
 

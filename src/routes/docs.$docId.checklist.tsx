@@ -122,7 +122,7 @@ function ChecklistPage() {
                   <span
                     className={cn(
                       "rounded-full px-2 py-0.5 text-[11px] font-semibold",
-                      PRIORITY_CLASS[q.priority] ?? PRIORITY_CLASS.Low,
+                      PRIORITY_CLASS[q.priority] ?? PRIORITY_CLASS["Low"],
                     )}
                   >
                     {q.priority}
