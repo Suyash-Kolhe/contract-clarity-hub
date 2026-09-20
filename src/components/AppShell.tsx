@@ -144,7 +144,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="flex min-h-screen flex-col bg-background">
       <div className="flex min-h-0 flex-1">
         <aside className="hidden w-72 shrink-0 border-r border-sidebar-border lg:block">
-          <div className="sticky top-0 h-screen pb-12">
+          <div className="sticky top-0 h-screen pb-16">
             <SidebarInner />
           </div>
         </aside>
