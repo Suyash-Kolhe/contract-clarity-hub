@@ -57,7 +57,9 @@ export const analyzeDocument = createServerFn({ method: "POST" })
     z.object({ fileName: z.string(), text: z.string().min(20) }).parse(input),
   )
   .handler(async ({ data }): Promise<DocumentAnalysis> => {
-    const gateway = createLovableAiGatewayProvider(getKey());
+    const gateway = createLovableAiGatewayProvider(getKey(), undefined, {
+      structuredOutputs: true,
+    });
     const text = data.text.slice(0, MAX_CHARS);
 
     try {
@@ -69,6 +71,7 @@ export const analyzeDocument = createServerFn({ method: "POST" })
       });
       return await result.output;
     } catch (error) {
+      console.error("analyzeDocument failed", error);
       if (NoObjectGeneratedError.isInstance(error)) {
         throw new Error("The analysis came back in an unexpected shape. Please try again.");
       }
