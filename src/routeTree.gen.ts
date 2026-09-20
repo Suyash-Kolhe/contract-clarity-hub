@@ -11,6 +11,10 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DocsDocIdRouteImport } from './routes/docs.$docId'
+import { Route as DocsDocIdIndexRouteImport } from './routes/docs.$docId.index'
+import { Route as DocsDocIdChatRouteImport } from './routes/docs.$docId.chat'
+import { Route as DocsDocIdChecklistRouteImport } from './routes/docs.$docId.checklist'
+import { Route as DocsDocIdClausesRouteImport } from './routes/docs.$docId.clauses'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,31 +26,80 @@ const DocsDocIdRoute = DocsDocIdRouteImport.update({
   path: '/docs/$docId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DocsDocIdIndexRoute = DocsDocIdIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DocsDocIdRoute,
+} as any)
+const DocsDocIdChatRoute = DocsDocIdChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
+  getParentRoute: () => DocsDocIdRoute,
+} as any)
+const DocsDocIdChecklistRoute = DocsDocIdChecklistRouteImport.update({
+  id: '/checklist',
+  path: '/checklist',
+  getParentRoute: () => DocsDocIdRoute,
+} as any)
+const DocsDocIdClausesRoute = DocsDocIdClausesRouteImport.update({
+  id: '/clauses',
+  path: '/clauses',
+  getParentRoute: () => DocsDocIdRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/docs/$docId': typeof DocsDocIdRoute
+  '/docs/$docId': typeof DocsDocIdRouteWithChildren
+  '/docs/$docId/chat': typeof DocsDocIdChatRoute
+  '/docs/$docId/checklist': typeof DocsDocIdChecklistRoute
+  '/docs/$docId/clauses': typeof DocsDocIdClausesRoute
+  '/docs/$docId/': typeof DocsDocIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/docs/$docId': typeof DocsDocIdRoute
+  '/docs/$docId/chat': typeof DocsDocIdChatRoute
+  '/docs/$docId/checklist': typeof DocsDocIdChecklistRoute
+  '/docs/$docId/clauses': typeof DocsDocIdClausesRoute
+  '/docs/$docId': typeof DocsDocIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/docs/$docId': typeof DocsDocIdRoute
+  '/docs/$docId': typeof DocsDocIdRouteWithChildren
+  '/docs/$docId/chat': typeof DocsDocIdChatRoute
+  '/docs/$docId/checklist': typeof DocsDocIdChecklistRoute
+  '/docs/$docId/clauses': typeof DocsDocIdClausesRoute
+  '/docs/$docId/': typeof DocsDocIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/docs/$docId'
+  fullPaths:
+    | '/'
+    | '/docs/$docId'
+    | '/docs/$docId/chat'
+    | '/docs/$docId/checklist'
+    | '/docs/$docId/clauses'
+    | '/docs/$docId/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/docs/$docId'
-  id: '__root__' | '/' | '/docs/$docId'
+  to:
+    | '/'
+    | '/docs/$docId/chat'
+    | '/docs/$docId/checklist'
+    | '/docs/$docId/clauses'
+    | '/docs/$docId'
+  id:
+    | '__root__'
+    | '/'
+    | '/docs/$docId'
+    | '/docs/$docId/chat'
+    | '/docs/$docId/checklist'
+    | '/docs/$docId/clauses'
+    | '/docs/$docId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  DocsDocIdRoute: typeof DocsDocIdRoute
+  DocsDocIdRoute: typeof DocsDocIdRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +118,58 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DocsDocIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/docs/$docId/': {
+      id: '/docs/$docId/'
+      path: '/'
+      fullPath: '/docs/$docId/'
+      preLoaderRoute: typeof DocsDocIdIndexRouteImport
+      parentRoute: typeof DocsDocIdRoute
+    }
+    '/docs/$docId/chat': {
+      id: '/docs/$docId/chat'
+      path: '/chat'
+      fullPath: '/docs/$docId/chat'
+      preLoaderRoute: typeof DocsDocIdChatRouteImport
+      parentRoute: typeof DocsDocIdRoute
+    }
+    '/docs/$docId/checklist': {
+      id: '/docs/$docId/checklist'
+      path: '/checklist'
+      fullPath: '/docs/$docId/checklist'
+      preLoaderRoute: typeof DocsDocIdChecklistRouteImport
+      parentRoute: typeof DocsDocIdRoute
+    }
+    '/docs/$docId/clauses': {
+      id: '/docs/$docId/clauses'
+      path: '/clauses'
+      fullPath: '/docs/$docId/clauses'
+      preLoaderRoute: typeof DocsDocIdClausesRouteImport
+      parentRoute: typeof DocsDocIdRoute
+    }
   }
 }
 
+interface DocsDocIdRouteChildren {
+  DocsDocIdChatRoute: typeof DocsDocIdChatRoute
+  DocsDocIdChecklistRoute: typeof DocsDocIdChecklistRoute
+  DocsDocIdClausesRoute: typeof DocsDocIdClausesRoute
+  DocsDocIdIndexRoute: typeof DocsDocIdIndexRoute
+}
+
+const DocsDocIdRouteChildren: DocsDocIdRouteChildren = {
+  DocsDocIdChatRoute: DocsDocIdChatRoute,
+  DocsDocIdChecklistRoute: DocsDocIdChecklistRoute,
+  DocsDocIdClausesRoute: DocsDocIdClausesRoute,
+  DocsDocIdIndexRoute: DocsDocIdIndexRoute,
+}
+
+const DocsDocIdRouteWithChildren = DocsDocIdRoute._addFileChildren(
+  DocsDocIdRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  DocsDocIdRoute: DocsDocIdRoute,
+  DocsDocIdRoute: DocsDocIdRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

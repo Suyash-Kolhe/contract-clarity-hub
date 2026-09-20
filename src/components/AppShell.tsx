@@ -9,7 +9,7 @@ import { removeDoc, useDocs } from "@/lib/doc-store";
 import { useUpload } from "@/lib/use-upload";
 import { cn } from "@/lib/utils";
 
-function DocList({ onNavigate }: { onNavigate?: () => void }) {
+function DocList({ onNavigate }: { onNavigate?: (() => void) | undefined }) {
   const docs = useDocs();
   const params = useParams({ strict: false }) as { docId?: string };
 
@@ -73,7 +73,7 @@ function DocList({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
-function SidebarInner({ onNavigate }: { onNavigate?: () => void }) {
+function SidebarInner({ onNavigate }: { onNavigate?: (() => void) | undefined }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const { upload, busy } = useUpload();
 
@@ -144,7 +144,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="flex min-h-screen flex-col bg-background">
       <div className="flex min-h-0 flex-1">
         <aside className="hidden w-72 shrink-0 border-r border-sidebar-border lg:block">
-          <div className="sticky top-0 h-screen">
+          <div className="sticky top-0 h-screen pb-16">
             <SidebarInner />
           </div>
         </aside>
