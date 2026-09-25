@@ -2,34 +2,38 @@
  * Browser-only text extraction for PDF and DOCX files.
  * Import this lazily (inside an event handler) — it pulls in heavy browser libs.
  */
+import { cleanText, detectKind, MIN_DOC_CHARS, validateFile, type DocKind } from "./limits";
 
-export type ExtractedDoc = { text: string; kind: "pdf" | "docx" };
+export type ExtractedDoc = { text: string; kind: DocKind };
 
-function clean(text: string) {
-  return text
-    .replace(/\r/g, "")
-    .replace(/[ \t]+/g, " ")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
-}
+const PAGE_BATCH = 8;
 
 async function extractPdf(file: File) {
-  const pdfjs = await import("pdfjs-dist");
-  const workerUrl = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url")).default;
-  pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+  const [pdfjs, worker] = await Promise.all([
+    import("pdfjs-dist"),
+    import("pdfjs-dist/build/pdf.worker.min.mjs?url"),
+  ]);
+  pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
 
-  const buffer = await file.arrayBuffer();
-  const pdf = await pdfjs.getDocument({ data: buffer }).promise;
-  const pages: string[] = [];
+  const pdf = await pdfjs.getDocument({ data: await file.arrayBuffer() }).promise;
+  const pages: string[] = new Array(pdf.numPages);
 
-  for (let i = 1; i <= pdf.numPages; i++) {
-    const page = await pdf.getPage(i);
-    const content = await page.getTextContent();
-    const line = content.items
-      .map((item) => ("str" in item ? item.str : ""))
-      .join(" ")
-      .replace(/\s+/g, " ");
-    pages.push(line);
+  // Read pages in small parallel batches instead of one at a time.
+  for (let start = 1; start <= pdf.numPages; start += PAGE_BATCH) {
+    const end = Math.min(start + PAGE_BATCH - 1, pdf.numPages);
+    const batch = [];
+    for (let i = start; i <= end; i++) {
+      batch.push(
+        pdf.getPage(i).then(async (page) => {
+          const content = await page.getTextContent();
+          pages[i - 1] = content.items
+            .map((item) => ("str" in item ? item.str : ""))
+            .join(" ")
+            .replace(/\s+/g, " ");
+        }),
+      );
+    }
+    await Promise.all(batch);
   }
 
   return pages.join("\n\n");
@@ -37,29 +41,23 @@ async function extractPdf(file: File) {
 
 async function extractDocx(file: File) {
   const mammoth = await import("mammoth/mammoth.browser.js");
-  const buffer = await file.arrayBuffer();
-  const result = await mammoth.extractRawText({ arrayBuffer: buffer });
+  const result = await mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() });
   return result.value as string;
 }
 
 export async function extractText(file: File): Promise<ExtractedDoc> {
-  const name = file.name.toLowerCase();
+  const invalid = validateFile(file);
+  if (invalid) throw new Error(invalid);
 
-  if (name.endsWith(".pdf")) {
-    const text = clean(await extractPdf(file));
-    if (text.length < 40) {
-      throw new Error(
-        "We couldn't read any text from this PDF. It may be a scan or image — try a text-based PDF.",
-      );
-    }
-    return { text, kind: "pdf" };
+  const kind = detectKind(file.name) as DocKind;
+  const text = cleanText(kind === "pdf" ? await extractPdf(file) : await extractDocx(file));
+
+  if (text.length < MIN_DOC_CHARS) {
+    throw new Error(
+      kind === "pdf"
+        ? "We couldn't read any text from this PDF. It may be a scan or image — try a text-based PDF."
+        : "This Word file appears to be empty.",
+    );
   }
-
-  if (name.endsWith(".docx")) {
-    const text = clean(await extractDocx(file));
-    if (text.length < 40) throw new Error("This Word file appears to be empty.");
-    return { text, kind: "docx" };
-  }
-
-  throw new Error("Unsupported file. Please upload a PDF or a .docx file.");
+  return { text, kind };
 }

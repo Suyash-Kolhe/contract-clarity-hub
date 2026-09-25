@@ -35,7 +35,11 @@ function load() {
   }
 }
 
-function persist() {
+let persistTimer: ReturnType<typeof setTimeout> | undefined;
+
+function persistNow() {
+  persistTimer = undefined;
+  if (typeof window === "undefined") return;
   try {
     window.localStorage.setItem(KEY, JSON.stringify(docs));
   } catch {
@@ -43,9 +47,37 @@ function persist() {
   }
 }
 
+/** Coalesces rapid updates into one serialisation of the (potentially large) library. */
+function schedulePersist() {
+  if (persistTimer !== undefined) return;
+  persistTimer = setTimeout(persistNow, 150);
+}
+
+if (typeof window !== "undefined") {
+  window.addEventListener("pagehide", () => {
+    if (persistTimer !== undefined) {
+      clearTimeout(persistTimer);
+      persistNow();
+    }
+  });
+}
+
 function emit() {
-  persist();
+  schedulePersist();
   listeners.forEach((l) => l());
+}
+
+/** Test helper: flush pending writes and reset in-memory state. */
+export function __resetStoreForTests(initial: StoredDoc[] = []) {
+  if (persistTimer !== undefined) clearTimeout(persistTimer);
+  persistTimer = undefined;
+  docs = initial;
+  loaded = true;
+}
+
+export function __flushForTests() {
+  if (persistTimer !== undefined) clearTimeout(persistTimer);
+  persistNow();
 }
 
 function subscribe(listener: () => void) {

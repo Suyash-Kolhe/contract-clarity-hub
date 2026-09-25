@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import { analyzeDocument } from "./analysis.functions";
 import { addDoc, newId, updateDoc } from "./doc-store";
+import { sanitizeFileName, truncateDoc, validateFile } from "./limits";
 
 export function useUpload() {
   const [busy, setBusy] = useState(false);
@@ -15,15 +16,20 @@ export function useUpload() {
     setBusy(true);
     const id = newId();
     try {
+      const invalid = validateFile(file);
+      if (invalid) throw new Error(invalid);
+
       const { extractText } = await import("./extract-text");
-      const { text, kind } = await extractText(file);
+      const extracted = await extractText(file);
+      const text = truncateDoc(extracted.text);
+      const fileName = sanitizeFileName(file.name);
 
       addDoc({
         id,
-        fileName: file.name,
-        kind,
+        fileName,
+        kind: extracted.kind,
         text,
-        charCount: text.length,
+        charCount: extracted.text.length,
         createdAt: Date.now(),
         status: "analyzing",
         chat: [],
@@ -32,7 +38,7 @@ export function useUpload() {
 
       void navigate({ to: "/docs/$docId", params: { docId: id } });
 
-      const analysis = await analyze({ data: { fileName: file.name, text } });
+      const analysis = await analyze({ data: { fileName, text } });
       updateDoc(id, { status: "ready", analysis });
       toast.success("Review ready", { description: analysis.title });
     } catch (error) {

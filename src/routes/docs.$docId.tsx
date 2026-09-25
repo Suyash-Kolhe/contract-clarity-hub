@@ -51,7 +51,7 @@ function DocLayout() {
           </h1>
           <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
             {doc?.status === "analyzing" && (
-              <span className="inline-flex items-center gap-1.5 text-accent-foreground">
+              <span role="status" className="inline-flex items-center gap-1.5 text-accent-foreground">
                 <Loader2 className="size-3.5 animate-spin" /> Reviewing…
               </span>
             )}
@@ -59,17 +59,17 @@ function DocLayout() {
             {doc?.fileName && <span className="truncate">· {doc.fileName}</span>}
           </p>
 
-          <nav className="-mb-px flex gap-1 overflow-x-auto pt-5">
+          <nav aria-label="Document sections" className="-mb-px flex gap-1 overflow-x-auto pt-5">
             {TABS.map(({ to, label, Icon, exact }) => (
               <Link
                 key={label}
                 to={to}
                 params={{ docId }}
                 activeOptions={{ exact }}
-                className="rounded-t-md px-3.5 py-2.5 text-sm font-medium whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground data-[status=active]:border-b-2 data-[status=active]:border-accent data-[status=active]:text-foreground"
+                className="rounded-t-md px-3.5 py-2.5 text-sm font-medium whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground data-[status=active]:border-b-2 data-[status=active]:border-accent data-[status=active]:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
               >
                 <span className="inline-flex items-center gap-2">
-                  <Icon className={cn("size-4")} />
+                  <Icon aria-hidden="true" className={cn("size-4")} />
                   {label}
                 </span>
               </Link>
