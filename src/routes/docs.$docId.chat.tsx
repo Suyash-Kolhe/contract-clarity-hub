@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { askDocument } from "@/lib/analysis.functions";
 import { updateDoc, useDoc } from "@/lib/doc-store";
+import { MAX_HISTORY, MAX_QUESTION_CHARS } from "@/lib/limits";
 
 export const Route = createFileRoute("/docs/$docId/chat")({
   head: () => ({
@@ -68,7 +69,9 @@ function ChatPage() {
     setPending(true);
 
     try {
-      const answer = await ask({ data: { text: doc.text, question: trimmed, history } });
+      const answer = await ask({
+        data: { text: doc.text, question: trimmed, history: history.slice(-MAX_HISTORY) },
+      });
       updateDoc(docId, {
         chat: [
           ...history,
@@ -92,7 +95,14 @@ function ChatPage() {
 
   return (
     <div className="flex min-h-[60vh] flex-col gap-5">
-      <div className="flex-1 space-y-5">
+      <div
+        className="flex-1 space-y-5"
+        role="log"
+        aria-live="polite"
+        aria-relevant="additions"
+        aria-busy={pending}
+        aria-label="Conversation about this document"
+      >
         {messages.length === 0 && !pending && (
           <div className="rounded-xl border border-border bg-surface p-6 sm:p-8">
             <h2 className="text-2xl">Ask about this document</h2>
@@ -117,12 +127,14 @@ function ChatPage() {
         {messages.map((message, i) =>
           message.role === "user" ? (
             <div key={i} className="flex justify-end">
+              <span className="sr-only">You asked: </span>
               <p className="max-w-[85%] rounded-2xl rounded-br-sm bg-primary px-4 py-2.5 text-sm leading-relaxed text-primary-foreground">
                 {message.content}
               </p>
             </div>
           ) : (
             <div key={i} className="max-w-[92%] space-y-3 text-[15px] leading-relaxed">
+              <span className="sr-only">Answer:</span>
               {message.content.split(/\n{1,}/).map((para, j) =>
                 para.trim() ? (
                   <p key={j}>{para}</p>
@@ -133,8 +145,8 @@ function ChatPage() {
         )}
 
         {pending && (
-          <p className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="size-4 animate-spin" /> Reading the document…
+          <p role="status" className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="size-4 animate-spin" aria-hidden="true" /> Reading the document…
           </p>
         )}
         <div ref={endRef} />
@@ -148,8 +160,13 @@ function ChatPage() {
           }}
           className="flex items-end gap-2"
         >
+          <label htmlFor="doc-question" className="sr-only">
+            Your question about this document
+          </label>
           <Textarea
+            id="doc-question"
             ref={inputRef}
+            maxLength={MAX_QUESTION_CHARS}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
@@ -161,6 +178,7 @@ function ChatPage() {
             rows={2}
             placeholder="Ask about a clause, a deadline, a payment…"
             className="min-h-16 resize-none border-0 bg-transparent shadow-none focus-visible:ring-0"
+          
           />
           <Button type="submit" size="icon" variant="accent" disabled={pending || !input.trim()}>
             {pending ? (

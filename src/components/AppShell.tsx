@@ -31,6 +31,7 @@ function DocList({ onNavigate }: { onNavigate?: (() => void) | undefined }) {
               to="/docs/$docId"
               params={{ docId: doc.id }}
               onClick={onNavigate}
+              aria-current={active ? "page" : undefined}
               className={cn(
                 "flex items-start gap-2.5 rounded-md px-3 py-2.5 pr-9 text-sm transition-colors",
                 active
@@ -80,7 +81,7 @@ function SidebarInner({ onNavigate }: { onNavigate?: (() => void) | undefined })
   return (
     <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
       <div className="px-5 pt-6 pb-4">
-        <Link to="/" onClick={onNavigate} className="flex items-center gap-2.5">
+        <Link to="/" onClick={onNavigate} aria-label="Counsel Desk home" className="flex items-center gap-2.5">
           <span className="flex size-9 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
             <Scale className="size-5" />
           </span>
@@ -97,6 +98,8 @@ function SidebarInner({ onNavigate }: { onNavigate?: (() => void) | undefined })
         <input
           ref={inputRef}
           type="file"
+          aria-label="Upload a new document"
+          tabIndex={-1}
           accept=".pdf,.docx"
           className="sr-only"
           onChange={(event) => {
@@ -124,7 +127,7 @@ function SidebarInner({ onNavigate }: { onNavigate?: (() => void) | undefined })
           Your documents
         </p>
       </div>
-      <nav className="min-h-0 flex-1 overflow-y-auto px-3 pb-6">
+      <nav aria-label="Your documents" className="min-h-0 flex-1 overflow-y-auto px-3 pb-6">
         <DocList onNavigate={onNavigate} />
       </nav>
 
@@ -142,8 +145,14 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
+      <a
+        href="#main-content"
+        className="sr-only z-50 rounded-md bg-primary px-4 py-2 text-primary-foreground focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
+      >
+        Skip to main content
+      </a>
       <div className="flex min-h-0 flex-1">
-        <aside className="hidden w-72 shrink-0 border-r border-sidebar-border lg:block">
+        <aside aria-label="Documents sidebar" className="hidden w-72 shrink-0 border-r border-sidebar-border lg:block">
           <div className="sticky top-0 h-screen pb-16">
             <SidebarInner />
           </div>
@@ -165,7 +174,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span className="display-title text-lg">Counsel Desk</span>
           </header>
 
-          <main className="min-w-0 flex-1">{children}</main>
+          <main id="main-content" tabIndex={-1} className="min-w-0 flex-1 focus:outline-none">{children}</main>
         </div>
       </div>
 

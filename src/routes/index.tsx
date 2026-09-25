@@ -83,6 +83,8 @@ function Home() {
           <input
             ref={inputRef}
             type="file"
+            aria-label="Upload a contract"
+            tabIndex={-1}
             accept=".pdf,.docx"
             className="sr-only"
             onChange={(event) => {
@@ -91,14 +93,14 @@ function Home() {
               if (file) void upload(file);
             }}
           />
-          <span className="mx-auto flex size-12 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
+          <span aria-hidden="true" className="mx-auto flex size-12 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
             {busy ? (
               <Loader2 className="size-5 animate-spin" />
             ) : (
               <UploadCloud className="size-5" />
             )}
           </span>
-          <h2 className="mt-4 text-xl">
+          <h2 className="mt-4 text-xl" aria-live="polite">
             {busy ? "Reading your document…" : "Drop a contract here"}
           </h2>
           <p className="mt-1.5 text-sm text-muted-foreground">
@@ -117,7 +119,7 @@ function Home() {
         <div className="mt-12 grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2">
           {FEATURES.map(({ Icon, title, body }) => (
             <div key={title} className="bg-surface p-5">
-              <Icon className="size-5 text-accent-foreground/80" />
+              <Icon aria-hidden="true" className="size-5 text-accent-foreground/80" />
               <h3 className="mt-3 text-lg leading-tight">{title}</h3>
               <p className="mt-1 text-sm text-muted-foreground">{body}</p>
             </div>
@@ -135,7 +137,7 @@ function Home() {
                     params={{ docId: doc.id }}
                     className="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-secondary/60"
                   >
-                    <FileText className="size-4 shrink-0 text-muted-foreground" />
+                    <FileText aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate font-medium">
                         {doc.analysis?.title ?? doc.fileName}
